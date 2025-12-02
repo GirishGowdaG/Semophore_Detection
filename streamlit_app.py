@@ -1,9 +1,16 @@
 import streamlit as st
 import cv2
-import mediapipe as mp
 import numpy as np
 import time
 from collections import deque
+
+# Try to import MediaPipe, handle if not available
+try:
+    import mediapipe as mp
+    MEDIAPIPE_AVAILABLE = True
+except ImportError:
+    MEDIAPIPE_AVAILABLE = False
+    mp = None
 
 # Page configuration
 st.set_page_config(
@@ -12,14 +19,19 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize MediaPipe
-@st.cache_resource
-def initialize_mediapipe():
-    mp_pose = mp.solutions.pose
-    pose = mp_pose.Pose()
-    return mp_pose, pose
+# Initialize MediaPipe only if available
+if MEDIAPIPE_AVAILABLE:
+    @st.cache_resource
+    def initialize_mediapipe():
+        mp_pose = mp.solutions.pose
+        pose = mp_pose.Pose()
+        return mp_pose, pose
 
-mp_pose, pose = initialize_mediapipe()
+    mp_pose, pose = initialize_mediapipe()
+else:
+    st.error("⚠️ MediaPipe is not available. This app requires MediaPipe for pose detection, which is currently not compatible with the Python version on Streamlit Cloud. Please run this app locally for full functionality.")
+    mp_pose = None
+    pose = None
 
 # Semaphore dictionary
 semaphore_dict = {
